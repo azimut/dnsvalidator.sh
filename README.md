@@ -1,6 +1,9 @@
 # dnsvalidator.sh
 
+Takes a file with IP address of nameservers. And perform some validations against them, in parallel(!).
+
 ## Requirements
+- dig
 - [gnu parallel](https://www.gnu.org/software/parallel/)
 
 ## References
