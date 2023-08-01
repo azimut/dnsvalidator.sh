@@ -26,7 +26,7 @@ usage() {
 	exit 1
 }
 
-doit() {
+worker() {
 	local nameserver="${1}" domain="${2}" ip="${3}" random_sub="${4}"
 
 	local s=""
@@ -79,17 +79,19 @@ doit() {
 	fi
 	echo "${nameserver},UP"
 }
-export -f doit
+export -f worker
 
 read -r -a ips < <(xargs <"${INPUT_FILE}")
 
 TIMESTAMP="$(date +%s)"
-TMPFILE=${TIMESTAMP}_work
+TMPFILE=${TIMESTAMP}.log
 
-parallel -j${JOBS} doit ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
-	tee ${TIMESTAMP}_work
+parallel -j${JOBS} worker ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
+	tee ${TMPFILE}
 
 echo "Removed ${PIPESTATUS[0]} of $(wc -l ${TMPFILE} | cut -f1 -d' ') servers from list."
+
 grep UP ${TMPFILE} |
-	cut -f2 -d' ' |
-	sort | uniq | sort -V | cut -f1 -d, >${TIMESTAMP}_clean
+	cut -f1 -d, |
+	sort -V |
+	uniq >${TIMESTAMP}.up.txt
