@@ -14,8 +14,6 @@ BASE_RESOLVER=${BASE_RESOLVERS[$((RANDOM % ${#BASE_RESOLVERS[@]}))]}
 STATIC_IP="$(dig +short @${BASE_RESOLVER} ${BASE_DOMAIN})"
 RANDOM_SUB="$(openssl rand -base64 32 | tr -dc 'a-z0-9' | fold -w16 | head -n1)"
 
-TIMESTAMP="$(date +%s)"
-
 usage() {
 	echo "> ./$0 <INPUT_FILE> [CONCURRENCY]"
 	echo "INPUT_FILE  plain text with ip adresses of DNS resolvers"
@@ -34,6 +32,10 @@ doit() {
 	local s=""
 	# know A
 	if s=$(dig @${nameserver} +short +timeout=5 ${domain} A); then
+		if [[ -z "${s}" ]]; then
+			printf "%s,DOWN,BOGUS_EMPTY_A,for %s instead of %s\n" "${nameserver}" "${domain}" "${ip}"
+			return 1
+		fi
 		if [[ ${s} != "${ip}" ]]; then
 			printf "%s,DOWN,BOGUS_A,returned %s for %s instead of %s\n" "${nameserver}" "${s}" "${domain}" "${ip}"
 			return 1
@@ -81,6 +83,7 @@ export -f doit
 
 read -r -a ips < <(xargs <"${INPUT_FILE}")
 
+TIMESTAMP="$(date +%s)"
 TMPFILE=${TIMESTAMP}_work
 
 parallel -j${JOBS} doit ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
@@ -89,4 +92,4 @@ parallel -j${JOBS} doit ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: 
 echo "Removed ${PIPESTATUS[0]} of $(wc -l ${TMPFILE} | cut -f1 -d' ') servers from list."
 grep UP ${TMPFILE} |
 	cut -f2 -d' ' |
-	sort | uniq | sort -V >${TIMESTAMP}_clean
+	sort | uniq | sort -V | cut -f1 -d, >${TIMESTAMP}_clean
