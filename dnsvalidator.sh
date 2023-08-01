@@ -6,7 +6,7 @@ set -eu
 INPUT_FILE=${1}
 JOBS=${2:-20}
 
-BASE_DOMAINS=(example.com starbucks.com.ar) # sites that return the same IP regardless the location, some dns servers might even not be able to reply for a specific TLD
+BASE_DOMAINS=(bet365.com starbucks.com.ar) # sites that return the same IP regardless the location, some dns servers might even not be able to reply for a specific TLD
 BASE_DOMAIN=${3:-${BASE_DOMAINS[$((RANDOM % ${#BASE_DOMAINS[@]}))]}}
 BASE_RESOLVERS=(1.1.1.1 8.8.8.8 9.9.9.9)
 BASE_RESOLVER=${BASE_RESOLVERS[$((RANDOM % ${#BASE_RESOLVERS[@]}))]}
