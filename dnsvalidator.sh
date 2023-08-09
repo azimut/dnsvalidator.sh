@@ -12,7 +12,7 @@ BASE_RESOLVERS=(1.1.1.1 8.8.8.8 9.9.9.9)
 BASE_RESOLVER=${BASE_RESOLVERS[$((RANDOM % ${#BASE_RESOLVERS[@]}))]}
 
 STATIC_IP="$(dig +short @${BASE_RESOLVER} ${BASE_DOMAIN})"
-RANDOM_SUB="$(openssl rand -base64 32 | tr -dc 'a-z0-9' | fold -w16 | head -n1)"
+RANDOM_SUB="$(openssl rand -base64 32 | tr -dc 'a-z0-9' | cut -c-16)"
 
 usage() {
 	echo "> ./$0 <INPUT_FILE> [CONCURRENCY]"
@@ -89,7 +89,7 @@ TMPFILE=${TIMESTAMP}.log
 parallel -j${JOBS} worker ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
 	tee ${TMPFILE}
 
-echo "Removed ${PIPESTATUS[0]} of $(wc -l ${TMPFILE} | cut -f1 -d' ') servers from list."
+echo "Removed ${PIPESTATUS[0]} of $(wc -l <${TMPFILE}) servers from list."
 
 grep UP ${TMPFILE} |
 	cut -f1 -d, |
