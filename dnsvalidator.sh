@@ -29,8 +29,8 @@ usage() {
 worker() {
 	local nameserver="${1}" domain="${2}" ip="${3}" random_sub="${4}"
 
-	local s=""
 	# know A
+	local s=""
 	if s=$(dig @${nameserver} +short +timeout=5 ${domain} A); then
 		if [[ -z "${s}" ]]; then
 			printf "%s,DOWN,BOGUS_EMPTY_A,for %s instead of %s\n" "${nameserver}" "${domain}" "${ip}"
@@ -45,13 +45,13 @@ worker() {
 		return 1
 	fi
 
-	local a=()
 	# SOA and PTR
+	local a=()
 	if IFS=$'\n' a=($(dig @${nameserver} +short +timeout=5 google.com SOA 8.8.8.8.in-addr.arpa PTR)); then
-		if [[ ${#a[@]} -eq 0 ]]; then
+		if ((${#a[@]} == 0)); then
 			echo "${nameserver},DOWN,EMPTY_PTR"
 			return 1
-		elif [[ ${#a[@]} -ne 2 ]]; then
+		elif ((${#a[@]} != 2)); then
 			echo "${nameserver},DOWN,INCOMPLETE_PTR,${#a[@]}"
 			return 1
 		elif [[ ${a[0]%% *} != "ns1.google.com." ]]; then
