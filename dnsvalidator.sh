@@ -84,14 +84,7 @@ export -f worker
 read -r -a ips < <(xargs <"${INPUT_FILE}")
 
 TIMESTAMP="$(date +%s)"
-TMPFILE=${TIMESTAMP}.log
-
 parallel -j${JOBS} worker ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
-	tee ${TMPFILE}
+	tee ${TIMESTAMP}.log
 
-echo "Removed ${PIPESTATUS[0]} of $(wc -l <${TMPFILE}) servers from list."
-
-grep UP ${TMPFILE} |
-	cut -f1 -d, |
-	sort -V |
-	uniq >${TIMESTAMP}.up.txt
+echo "Removed ${PIPESTATUS[0]} of ${#ips[@]} servers from list."
