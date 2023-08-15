@@ -87,5 +87,4 @@ TIMESTAMP="$(date +%s)"
 parallel -j${JOBS} worker ::: "${ips[@]}" ::: ${BASE_DOMAIN} ::: ${STATIC_IP} ::: ${RANDOM_SUB} |
 	tee ${TIMESTAMP}.log
 
-echo
-echo "Removed ${PIPESTATUS[0]} of ${#ips[@]} servers from list."
+echo -e "\nFound ${PIPESTATUS[0]} DNS servers down out of ${#ips[@]}."
